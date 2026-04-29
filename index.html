@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>遗传系谱图学习工具（高中版）</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <h1>遗传系谱图学习工具（高中版）</h1>
+  <div class="mode">
+    <span>模式：</span>
+    <select id="modeSelect" title="选择遗传模式">
+      <option value="AR">常染色体隐性（AR）</option>
+      <option value="AD">常染色体显性（AD）</option>
+      <option value="XLR">X 连锁隐性（XLR）</option>
+      <option value="XLD">X 连锁显性（XLD）</option>
+    </select>
+    <span class="badge" id="modeHint">AR: aa患病；Aa携带；AA正常</span>
+    <span class="toggle" id="themeToggle" title="深色/浅色">
+      <span>🌓</span><span class="hint">深色</span>
+    </span>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h3>添加/编辑人物</h3>
+    <div class="content">
+      <div class="row">
+        <div>
+          <label>姓名</label>
+          <input id="nameInput" placeholder="如：I-1 或 小明"/>
+        </div>
+        <div>
+          <label>性别</label>
+          <select id="sexInput">
+            <option value="M">男</option>
+            <option value="F">女</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>所处世代（整数，越小越靠上）</label>
+          <input id="genInput" type="number" min="1" value="1"/>
+        </div>
+        <div>
+          <label>已知患病？</label>
+          <select id="affectedInput">
+            <option value="unknown">未知</option>
+            <option value="no">否</option>
+            <option value="yes">是</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="genotypeRow">
+        <label>基因型（随模式变化）</label>
+        <select id="genotypeInput"></select>
+        <div class="hint" id="genoHint">若不确定可留空，仅按“患病状态”绘制。</div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>父亲（可选）</label>
+          <select id="fatherInput"><option value="">（无）</option></select>
+        </div>
+        <div>
+          <label>母亲（可选）</label>
+          <select id="motherInput"><option value="">（无）</option></select>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top:12px">
+        <button id="addBtn">添加/更新人物</button>
+        <button class="subtle" id="resetBtn">清空表单</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="search" style="flex:2">
+          <label>搜索人物</label>
+          <span class="search-icon">🔎</span>
+          <input id="searchInput" placeholder="按姓名或ID过滤列表"/>
+        </div>
+        <div style="flex:1">
+          <label>排序</label>
+          <select id="sortSelect">
+            <option value="gen">按世代</option>
+            <option value="id">按ID</option>
+            <option value="name">按姓名</option>
+          </select>
+        </div>
+      </div>
+
+      <label style="margin-top:10px">当前人物列表</label>
+      <div class="list" id="personList"></div>
+
+      <div class="toolbar" style="margin-top:12px">
+        <button class="ghost" id="exportBtn">导出JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none"/>
+        <button class="ghost" id="importBtn">导入JSON</button>
+        <button class="ghost danger" id="clearAllBtn">全部清空</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="grid-column: 2 / span 1;">
+    <h3>系谱图（可缩放与拖拽）</h3>
+    <div class="canvas-toolbar">
+      <div class="canvas-left">
+        <button class="ghost" id="zoomOutBtn" title="缩小">－</button>
+        <span class="chip" id="zoomLabel">100%</span>
+        <button class="ghost" id="zoomInBtn" title="放大">＋</button>
+        <button class="ghost" id="resetViewBtn" title="重置视图">重置</button>
+      </div>
+      <div class="canvas-right">
+        <span class="hint">拖拽：按住鼠标左键或空格</span>
+        <span class="kbd">滚轮：缩放</span>
+      </div>
+    </div>
+    <div class="content canvas-wrap">
+      <svg id="svg">
+        <g id="viewport"></g>
+      </svg>
+    </div>
+    <div class="footer">提示：点击节点可把信息回填到左侧以便编辑；方形=男、圆形=女、实心=患病，“携带”为教育提示。</div>
+  </section>
+
+  <section class="card" style="grid-column: 1 / span 2;">
+    <h3>子代遗传概率计算</h3>
+    <div class="content">
+      <div class="row">
+        <div>
+          <label>父亲</label>
+          <select id="calcFather"><option value="">请选择</option></select>
+        </div>
+        <div>
+          <label>母亲</label>
+          <select id="calcMother"><option value="">请选择</option></select>
+        </div>
+        <div>
+          <label>子代性别</label>
+          <select id="childSex">
+            <option value="any">未知（按1:1加权）</option>
+            <option value="M">男</option>
+            <option value="F">女</option>
+          </select>
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <button id="calcBtn">计算子代概率</button>
+      </div>
+      <div style="margin-top:12px">
+        <div id="calcResult" class="hint"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
